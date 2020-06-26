@@ -10,7 +10,7 @@ function closeNav() {
 
 
 window.onload = function () {
-    document.getElementById("myAudio").play();
+    
 }
 
 function startIntro() {
@@ -60,6 +60,8 @@ function runVideo(videoNum){
     console.log(player);
     player.playVideo();
     dialShowing = false;
+    introSound.stop()
+    staticSound.setVolume(0, 5)
     $("#defaultCanvas0").fadeTo(3000, 0);
     
 }
