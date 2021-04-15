@@ -1,11 +1,22 @@
 function openNav() {
-    document.getElementById("mySidebar").style.width = "250px";
+    document.getElementById("mySidebar").style.width = "100%";
 }
 
 function closeNav() {
     document.getElementById("mySidebar").style.width = "0";
 }
 
+
+
+function openVolume(){
+    console.log(document.getElementById('volumeBar'));
+    document.getElementById('volumeBar').style.transform = "translateX(0%)";
+    console.log("VOLUME")
+}
+
+function closeVolume(){
+    document.getElementById('volumeBar').style.transform = "translateX(-100%)";
+}
 
 function startIntro() {
     bringCanvasToFront();
@@ -38,18 +49,33 @@ function fadeInAndOut() {
     }, randomTime);
 }
 
-const videos = ['uav_7l5WaH4', 'qStlJor9Z1k'];
+function setVolume(level){
+    player.setVolume(level);
+    masterVolume(level/100);
+    myVoice.setVolume(level/100);
+}
+
+const videos = ['K6fCnO9TjG0','r3-Y31ONZuI', 'qStlJor9Z1k'];
 function runVideo(videoNum) {
     $('#fullBackground').css("display", "block");
     $('#fullBackground').fadeIn('slow');
-    player.videoId = videos[videoNum];
+    player.loadVideoById(videos[videoNum]);
     console.log(player);
     player.playVideo();
     dialShowing = false;
     introSound.stop()
     staticSound.setVolume(0, 5)
     $("#defaultCanvas0").fadeTo(3000, 0);
+}
 
+function fadeVideo(){
+    $(".staticBackground").fadeTo(500, 1, function() {
+        $('#fullBackground').fadeOut('slow', function(){
+            $('#fullBackground').css("display", "none");
+            stopVideo();
+        });
+        $(".staticBackground").fadeTo(1000, 0.2);
+    });
 }
 
 $('#fullBackground').fadeOut()

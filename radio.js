@@ -11,6 +11,7 @@ class Piece {
         if (!running) {
             running = true;
             const className = this.className;
+            
             const self = this;
             $(this.className).addClass("shake-opacity");
             $(this.className).addClass('shake-constant');
@@ -140,11 +141,13 @@ let missedClick = 0;
 
 function makeUsable(part) {
     console.log(part);
+    $(part.className).css("cursor", "pointer");
     $(part.className).click(function () {
-        part.shakeIt();
-        if (part.messages.length === 0) {
-            sendTransmission();
+        if(sendTransmission()){
+            part.shakeIt();
         }
+        
+        
     });
     missedClick = 0;
 }

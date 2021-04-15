@@ -27,7 +27,7 @@ let count = 0;
 let dialShowing = false;
 let staticSound;
 let introSound;
-let masterVolumeVal = 0.2;
+let masterVolumeVal = 0.5;
 let videoRunning = false;
 let myVoice = new p5.Speech(); // speech synthesis object
 
@@ -50,7 +50,7 @@ let messageIndex = 0;
 let lineBreakLength = 12;
 let modal;
 let modalContent;
-let transmissionRunning = true;
+let transmissionRunning = false;
 let saidNo = false;
 let findPart = false;
 let givenName = "";
@@ -87,7 +87,8 @@ function preload() {
     lineBreakLength = 12;
 
 
-    transmissions = [["Hey, hey you!",
+    transmissions = [[fadeInRadio,
+        "Hey, hey you!",
         "Good you can hear me",
         "What's your name?",
         getName,
@@ -96,13 +97,13 @@ function preload() {
         getYesNoFake,
         "You know you're alright, ",
         "Thanks for helping me out. people these days aren't giving me the respect I deserve",
-        "It's actually in your best interest to help me cuz I've worked with everyone",
+        "It's actually in your best interest cuz I've worked with everyone",
         "anyway can you fix up my antenna? Its been so janky lately",
         antennaAdjust,
         "WOAH OH MY GOD THAT HURT",
         "WAIT STOP",
         fadeOutRadio
-    ], ["Damn you didn't have to adjust it so hard",
+    ], [fadeInRadio, "Damn you didn't have to adjust it so hard",
         "can't hear as much as I used to",
         "can u move stations around see if that'll fix it?",
         dialAdjust,//hit all three dials
@@ -111,7 +112,7 @@ function preload() {
         "Ughhh try the other one",
         stopTransmission,
         fadeOutRadio
-    ], ["Alright so now all I can hear are agressively loud ads for airlines",
+    ], [fadeInRadio, "Alright so now all I can hear are agressively loud ads for airlines",
         "You shoulda seen the heyday. I was everywhere",
         "You couldn't get away from me. Sports, stories, people cared",
         "Here wait listen to this",
@@ -123,7 +124,7 @@ function preload() {
         mouthAdjust,
         speakerAdjust,
         radioAdjust,
-        ""
+        fadeOutRadio,
 
 
         //baseball radio starts playing and will continue to until you touch the mouth
@@ -132,24 +133,92 @@ function preload() {
     soundFormats('mp3')
     staticSound = loadSound('static.mp3');
     introSound = loadSound('radio.mp3');
-    broadcast = loadSound('./baseball.mp3');
+    // broadcast = loadSound('./baseball.mp3');
 }
+
+
+function setup() {
+    modal = document.getElementById("myModal");
+    modalContent = document.getElementById("modalContent");
+    normalVoice();
+    myVoice.interrupt = true;
+    masterVolume(masterVolumeVal);
+    introSound.setVolume(1.0, 3);
+    staticSound.setVolume(0.1, 3);
+    introSound.loop();
+    centerX = windowWidth / 2;
+    centerY = windowHeight / 2;
+    createCanvas(windowWidth, windowHeight);
+    angleMode(DEGREES);
+    fill(155);
+    textAlign(CENTER, CENTER);
+    rectMode(CENTER);
+    rotate(0);
+    background(0);
+    textFont('Nintendoid1');
+    button1 = createButton('FULLSCREEN!');
+    button1.position(windowWidth / 2 - button1.width / 2 + padding, windowHeight / 2 - button1.height / 2);
+    button1.mousePressed(function () {
+        fullScreen();
+        enterSite();
+    });
+    $("#wholeRadio").on("click",function() {
+        onObjectClick();
+    });
+    $("#radioBackground").on("click",function() {
+        onObjectClick();
+    });
+    button1.style('font-family', 'Nintendoid1');
+    button1.style('z-index', '2');
+    button2 = createButton('NO FULLSCREEN!');
+    button2.style('font-family', 'Nintendoid1');
+    button2.style('z-index', '2');
+    button2.position(windowWidth / 2 - button2.width / 2 - padding, windowHeight / 2 - button2.height / 2);
+    button2.mousePressed(enterSite);
+
+}
+
 
 function stopTransmission() {
     transmissionRunning = false;
 }
 
+function nextTrack(){
+    //need to worry about stopping video
+    
+    if(curTrackNum < 2){
+        fadeOutRadio(true);
+        playTrack(curTrackNum+1);
+        if(videoRunning){
+            fadeVideo();
+        }
+    } else {
+        //indicate not working
+    }
+}
 
+function prevTrack(self){
+    fadeOutRadio(true);
+    if(curTrackNum < 0){
+        playTrack(curTrackNum-1);
+        if(videoRunning){
+            stopVideo();
+            fadeVideo();
+        }
+    } else {
+        //indicate not working
+    }
+}
 
 function playTrack(trackNum) {
     curTrackNum = trackNum;
+    document.getElementById("transmission").innerText = "";
+    globalTransmissionNum = 0;
     parts.setupTrack(trackNum);
     curRandomVoice = trackNum * 0.2;
+    transmissionRunning = true;
 }
 
-function draw() {
-    // why draw when you can click?
-}
 
 function doList() {
     myVoice.listVoices(); // debug printer for voice options
@@ -159,9 +228,8 @@ function keyPressed() {
     background(255, 0, 0); // clear screen
 }
 
-function mousePressed() {
+function onObjectClick() {
     if (transmissionRunning) {
-        console.log(transmissionRunning);
         sendTransmission();
 
     } else if (findPart) {
@@ -174,13 +242,15 @@ function mousePressed() {
     } else {
         //baseball broadcast send message every five
         missedClick++;
-        if (missedClick > 5) {
+        if (parts.prevPiece() && missedClick > 5) {
             parts.prevPiece().flash(1000);
             missedClick = 0;
         }
     }
 
 }
+
+
 
 function randomVoice() {
     myVoice.setPitch(random(2));
@@ -197,12 +267,15 @@ function normalVoice() {
 
 function speakWithRandom(message, randomAmount) {
     //randomAmount bewteen 0 and 1
-    let randAmt = random(1);
-    if (randAmt < randomAmount) {
-        randomVoice();
+    if(message){
+        let randAmt = random(1);
+        if (randAmt < randomAmount) {
+            randomVoice();
+        }
+        speakMes(message);
+        normalVoice();
     }
-    speakMes(message);
-    normalVoice();
+    
 }
 
 function speakMes(message) {
@@ -210,10 +283,11 @@ function speakMes(message) {
 }
 
 function sendTransmission() {
+    //returns true if successfully run
     if (!typing) {
         globalTransmissionNum++;
     }
-    sendTransmissionArray(curTrackNum, globalTransmissionNum - 1);
+    return sendTransmissionArray(curTrackNum, globalTransmissionNum - 1);
 
 }
 
@@ -223,14 +297,16 @@ function sendTransmission() {
 function sendTransmissionArray(trackNum, transmissionNumber) {
     //This will send the transmissionNumber index 
     let curMessage = transmissions[trackNum][transmissionNumber];
+    console.log(curMessage);
     if (typeof curMessage === "function") {
+        return true;
         //if passed function returns false the text does not dissapear
         if (transmissions[trackNum][transmissionNumber]()) {
             document.getElementById("transmission").innerText = "";
 
         }
     } else {
-        sendMessage(curMessage);
+        return sendMessage(curMessage);
         //speakWithRandom(curMessage, transmissionNumber / 10)
     }
 
@@ -239,22 +315,25 @@ function sendTransmissionArray(trackNum, transmissionNumber) {
 
 function sendMessage(message) {
     if (!typing) {
+        
         messageIndex = 0;
         typing = true;
         speakWithRandom(message, curRandomVoice)
         $(".screen").addClass("talking");
         document.getElementById("transmission").innerText = ""
         typeMessage(message)
+        return true;
     } else {
         //show all message
         document.getElementById("transmission").innerText = message;
         typing = false;
         $(".screen").removeClass("talking");
+        return false;
     }
 }
 
 function typeMessage(message) {
-    if (messageIndex < message.length) {
+    if ( messageIndex < message.length) {
         const curChar = message.charAt(messageIndex);
         if (typing) {
             document.getElementById("transmission").innerHTML += message.charAt(messageIndex);
@@ -280,21 +359,33 @@ function getName() {
     doneBtn.className = "fullWidth";
     modalContent.appendChild(inputName);
     modalContent.appendChild(doneBtn);
+    inputName.placeholder="NAME"
     doneBtn.onclick = function () {
         console.log(inputName.value);
         givenName = inputName.value;
+        let add = 0;
         if (givenName === "") {
-            sendMessage("Fine! Being all coy. I'll just call u Georfry");
+            insertMessage("Fine! Being all coy. I'll just call u Georfry");
             givenName = "Georfry";
+            add = 1;
         }
-        transmissions[0][4] = givenName + transmissions[0][4];
-        transmissions[0][7] = transmissions[0][7] + givenName;
+        transmissions[0][5 + add] = givenName + transmissions[0][5 + add];
+        transmissions[0][8 + add] = transmissions[0][8 + add] + givenName;
         screen.setMessage(givenName, 5);
-        console.log(screen);
+        document.cookie = "name=" + givenName;
+        console.log(document.cookie);
         closeBox();
     }
     return true;
 
+}
+
+Array.prototype.insert = function ( index, item ) {
+    this.splice( index, 0, item );
+};
+
+function insertMessage(message){
+    transmissions[curTrackNum].insert(globalTransmissionNum, message);
 }
 
 function getYesNoFake() {
@@ -367,57 +458,26 @@ function baseballBroadcast() {
     broadcast.play();
 }
 
-function fadeInRadio(callback) {
-    $('#wholeRadio').fadeIn("slow", function () {
-        callback("woah");
-    });
+function fadeInRadio() {
+    document.getElementById("transmission").innerText = ""
+    $('#wholeRadio').fadeIn("slow");
 }
 
-function fadeOutRadio() {
+function fadeOutRadio(noVideo) {
+    console.log('fading')
     $('.fullRadio').addClass("shake-opacity");
     $('#transmission').addClass("shake-opacity");
-    $('#wholeRadio').animate({ opacity: 0 }, 1000, function () {
+    
+    $('#wholeRadio').fadeOut("slow", function () {
         $('.fullRadio').removeClass("shake-opacity");
         $('#transmission').removeClass("shake-opacity");
-
+        if(!noVideo){
+            console.log("video starting")
+            startVideo(curTrackNum);
+        }
     });
-    curTrackNum++;
 }
 
-
-function setup() {
-    modal = document.getElementById("myModal");
-    modalContent = document.getElementById("modalContent");
-    normalVoice();
-    myVoice.interrupt = true;
-    masterVolume(masterVolumeVal);
-    introSound.setVolume(1.0, 3);
-    staticSound.setVolume(0.1, 3);
-    introSound.loop();
-    centerX = windowWidth / 2;
-    centerY = windowHeight / 2;
-    createCanvas(windowWidth, windowHeight);
-    angleMode(DEGREES);
-    fill(155);
-    textAlign(CENTER, CENTER);
-    rectMode(CENTER);
-    rotate(0);
-    background(0);
-    textFont('Nintendoid1');
-    button1 = createButton('FULLSCREEN!');
-    button1.position(windowWidth / 2 - button1.width / 2 + padding, windowHeight / 2 - button1.height / 2);
-    button1.mousePressed(function () {
-        fullScreen();
-        enterSite();
-    });
-    button1.style('font-family', 'Nintendoid1');
-
-    button2 = createButton('NO FULLSCREEN!');
-    button2.style('font-family', 'Nintendoid1');
-    button2.position(windowWidth / 2 - button2.width / 2 - padding, windowHeight / 2 - button2.height / 2);
-    button2.mousePressed(enterSite);
-
-}
 
 
 function windowResized() {
@@ -428,28 +488,33 @@ function windowResized() {
     button2.position(windowWidth / 2 - button2.width / 2 - padding, windowHeight / 2 - button2.height / 2);
 }
 
+function stopVideo(){
+    videoRunning = false;
+    bringCanvasToFront();
+    staticSound.setVolume(0.2, 2)
+}
 
 function draw() {
     if (home) {
-        fill(0, 30);
-        rect(centerX, centerY, width, height)
-        titleText(addStart, runningIntro);
+        
+        if(frameCount % 5 == 0){
+            fill(0, 30);
+            rect(centerX, centerY, width, height)
+            titleText(addStart, runningIntro);
+        }
+        
     } else {
-        if (!videoRunning) {
-            // startVideo(0);
-
-        } else {
+        if (videoRunning)  {
             if (player.getCurrentTime() > player.getDuration() * 0.98) {
+                nextTrack();
                 videoRunning = false;
-
-                angle = prevAngle + 30;
-                bringCanvasToFront();
-                staticSound.setVolume(0.2, 2)
             }
         }
     }
 
 }
+
+
 
 function titleText(add, runningIntro) {
     if (runningIntro) {
@@ -460,11 +525,10 @@ function titleText(add, runningIntro) {
         if (color <= 0) {
             home = false;
             startIntro();
-            fadeInRadio(console.log)
+            transmissionRunning = true;
             playTrack(0);
         }
     } else {
-        console.log(size)
         size = 200 - Math.cos(frameCount / 100) * 200 + add;
         // color = size + 255;
     }
@@ -499,8 +563,8 @@ function enterSite() {
     runningIntro = true;
     introSound.setVolume(0, 5);
     staticSound.loop();
-    background(0);
-    clear();
+    // background(0);
+    // clear();
     //document.getElementById("defaultCanvas0").style.zIndex = "1"
 
 }
