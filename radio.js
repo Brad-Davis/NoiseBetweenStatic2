@@ -11,29 +11,39 @@ class Piece {
         if (!running) {
             running = true;
             const className = this.className;
-            
+
             const self = this;
             $(this.className).addClass("shake-opacity");
             $(this.className).addClass('shake-constant');
-            console.log(this.className);
-            console.log(this.messages);
+
             if (this.messages && this.shakeCount < this.messages.length) {
-                if (typing) {
+                if (typing && className.includes('dial')) {
+                    console.log('still typing');
                     return;
                 }
-                if (this.shakeCount < 2) {
-                    typeSpeed = 200;
-                } else {
-                    typeSpeed = this.shakeCount * 200;
-                }
+
+                //Stuff to make the ending dramatic
+                // if (this.shakeCount < 2) {
+                //     typeSpeed = 200;
+                // } else {
+                //     typeSpeed = this.shakeCount * 200;
+                // }
 
 
-                this.timeShake = typeSpeed + 100;
-                myVoice.setRate(0.5 - (0.1 * this.shakeCount));
+                // this.timeShake = typeSpeed + 100;
+                // myVoice.setRate(0.5 - (0.1 * this.shakeCount));
                 sendMessage(this.messages[this.shakeCount]);
             }
+            if (className != ".radio" || this.shakeCount < 2) {
+                glitchOutRandom(1.5);
+            }
+
+
+
             this.shakeCount++;
+            console.log(this.shakeCount);
             if (this.shakeCount === this.break) {
+                console.log("break")
                 if (this.className === ".radio") {
                     breakInTwo();
                 } else {
@@ -41,6 +51,10 @@ class Piece {
                         self.breakIt();
                         running = false;
                         transmissionRunning = true;
+                        if (className.includes('dial') || className === ".antenna") {
+                            sendTransmission();
+                            // transmissionRunning = false;
+                        }
                     }, this.shakeCount * this.timeShake);
                 }
             } else {
@@ -125,12 +139,36 @@ class Pieces {
 
 }
 
+function sendNameCookie() {
+    sendMessage(getNameCookie());
+}
+
+function getNameCookie() {
+    return getCookie('name');
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
 parts = new Pieces();
-parts.addPiece(new Piece(3, '.antenna'));
+parts.addPiece(new Piece(3, '.antenna', "WOAH OH MY GOD THAT HURT", "WAIT STOP", "PLEASE!"));
 parts.addPiece(new Piece(1, '.dial3'));
 parts.addPiece(new Piece(1, '.dial2'));
 parts.addPiece(new Piece(1, '.dial1'));
-const screen = parts.addPiece(new Piece(6, '.screen', "OW! What the hell! Stop!", "Just listen!", "please", "don't", "leave", ""));
+const screen = parts.addPiece(new Piece(6, '.screen', "OW! What the hell! Stop!", "Just listen!", "please", "don't", "leave", getNameCookie));
 parts.addPiece(new Piece(3, '.speaker'));
 parts.addPiece(new Piece(5, '.radio'));
 
@@ -143,17 +181,13 @@ function makeUsable(part) {
     console.log(part);
     $(part.className).css("cursor", "pointer");
     $(part.className).click(function () {
-        if(sendTransmission()){
-            part.shakeIt();
-        }
-        
-        
+        part.shakeIt();
+
     });
     missedClick = 0;
 }
 
 function breakInTwo() {
-
     setTimeout(() => {
         $('#transmission').animate({ opacity: 0 }, 1000);
         $('.fullRadio').css({
@@ -171,6 +205,9 @@ function breakInTwo() {
                     'left': '120px',
                 });
 
+                setTimeout(() => {
+                    fadeOutRadio();
+                }, 2000);
             }, 1000);
         }, 3000);
     }, 2000);

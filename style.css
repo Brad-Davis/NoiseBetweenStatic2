@@ -14,6 +14,51 @@ canvas {
   left: 0;
 }
 
+.floatRight {
+  float: right;
+  width: 50%;
+}
+
+.floatLeft {
+  float: left;
+  width: 50%;
+}
+
+.creditsRow {
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+.centerDiv {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: black;
+}
+
+.centerDiv h5 {
+  width: 75%;
+  margin: 0 auto;
+  margin-bottom: 3rem;
+}
+
+.centerDiv h2 {
+  margin-top: 3rem;
+}
+
+#credits {
+  display: none;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  z-index: 1000;
+  color: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 button {
   border: none;
   color: white;
@@ -82,6 +127,14 @@ button:hover {
   margin-left: 50px;
 }
 
+.centerDiv .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
 .openbtn {
   z-index: 2;
   font-size: 20px;
@@ -93,7 +146,7 @@ button:hover {
   left: 0px;
 }
 
-.volumeSlider{
+.volumeSlider {
   position: absolute;
   left: 0px;
   width: 60px;
@@ -104,11 +157,21 @@ button:hover {
   transition: 0.5s;
 }
 
-#volumeBar{
+#warning {
+  position: absolute;
+  width: 100%;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 9;
+  text-align: center;
+}
+
+#volumeBar {
   transform: translateX(-100%);
 }
 
-.closeSound{
+.closeSound {
   font-size: 3em;
   width: 100%;
   text-decoration: none;
@@ -118,21 +181,22 @@ button:hover {
   padding-left: 8px;
 }
 
-.closeSound:hover{
+.closeSound:hover {
   color: white;
 }
 
-input[type=range][orient=vertical]
-{
-    writing-mode: bt-lr; /* IE */
-    -webkit-appearance: slider-vertical; /* WebKit */
-    width: 22px;
-    height: 175px;
-    padding: 0 18px;
-    margin: auto 0;
+input[type=range][orient=vertical] {
+  writing-mode: bt-lr;
+  /* IE */
+  -webkit-appearance: slider-vertical;
+  /* WebKit */
+  width: 22px;
+  height: 175px;
+  padding: 0 18px;
+  margin: auto 0;
 }
 
-.volumnbtn{
+.volumnbtn {
   z-index: 2;
   font-size: 20px;
   cursor: pointer;
@@ -193,8 +257,12 @@ input[type=range][orient=vertical]
   overflow: hidden;
 }
 
-.trackControls{
-  display: none !important;
+#trackControls1 {
+  display: none;
+}
+
+#trackControls2 {
+  display: none;
 }
 
 .hide {
@@ -210,10 +278,9 @@ svg {
 .fullRadio {
   animation: shake 3s infinite cubic-bezier(.36, .07, .19, .97) both;
   position: absolute;
-  top: -30vh;
-  left: 8vw;
+  top: -220px;
+  left: 100px;
   transition: all 3s ease 0s;
-  animation: shake 3s infinite cubic-bezier(.36, .07, .19, .97) both;
 }
 
 .noSelect {}
@@ -360,7 +427,6 @@ svg {
   height: 100%;
   /* Full height */
   overflow: auto;
-  
   /* Enable scroll if needed */
   background-color: rgb(0, 0, 0);
   /* Fallback color */
@@ -368,9 +434,9 @@ svg {
   /* Black w/ opacity */
 }
 
-#radioBackground{
+#radioBackground {
   position: absolute;
-  left:10%;
+  left: 10%;
   width: 80%;
   top: 10%;
   height: 80%;
@@ -425,7 +491,7 @@ svg {
   font-family: 'Nintendoid1';
 }
 
-#modalContent input{
+#modalContent input {
   width: 100%;
   font-size: 5em;
   font-family: 'Nintendoid1';

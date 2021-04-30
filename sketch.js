@@ -1,10 +1,15 @@
-let canvas, button1, button2, myFont;
+let canvas, button1, button2, photoSense, myFont;
 let padding = 200;
 let prevSize;
 let size;
 let color = 255;
 let addStart = 0;
+let glitching = false;
+
+//SET HOME TO TRUE TO HAVE HOMESCREEN
+//and get rid of playtrack(0)
 let home = true;
+
 let runningIntro = false;
 let radius = 80;
 let centerX;
@@ -100,8 +105,6 @@ function preload() {
         "It's actually in your best interest cuz I've worked with everyone",
         "anyway can you fix up my antenna? Its been so janky lately",
         antennaAdjust,
-        "WOAH OH MY GOD THAT HURT",
-        "WAIT STOP",
         fadeOutRadio
     ], [fadeInRadio, "Damn you didn't have to adjust it so hard",
         "can't hear as much as I used to",
@@ -118,7 +121,7 @@ function preload() {
         "Here wait listen to this",
         baseballBroadcast,
         "I'm serious just listen",
-        "So tired of this pop 50s bullshirt",
+        "So tired of everything changing",
         "People used to gather around and listen",
         "So that's what you're gonna do",
         mouthAdjust,
@@ -133,7 +136,7 @@ function preload() {
     soundFormats('mp3')
     staticSound = loadSound('static.mp3');
     introSound = loadSound('radio.mp3');
-    // broadcast = loadSound('./baseball.mp3');
+    broadcast = loadSound('baseball.mp3');
 }
 
 
@@ -162,10 +165,10 @@ function setup() {
         fullScreen();
         enterSite();
     });
-    $("#wholeRadio").on("click",function() {
+    $("#wholeRadio").on("click", function () {
         onObjectClick();
     });
-    $("#radioBackground").on("click",function() {
+    $("#radioBackground").on("click", function () {
         onObjectClick();
     });
     button1.style('font-family', 'Nintendoid1');
@@ -183,13 +186,13 @@ function stopTransmission() {
     transmissionRunning = false;
 }
 
-function nextTrack(){
+function nextTrack() {
     //need to worry about stopping video
-    
-    if(curTrackNum < 2){
+
+    if (curTrackNum < 2) {
         fadeOutRadio(true);
-        playTrack(curTrackNum+1);
-        if(videoRunning){
+        playTrack(curTrackNum + 1);
+        if (videoRunning) {
             fadeVideo();
         }
     } else {
@@ -197,11 +200,11 @@ function nextTrack(){
     }
 }
 
-function prevTrack(self){
+function prevTrack(self) {
     fadeOutRadio(true);
-    if(curTrackNum < 0){
-        playTrack(curTrackNum-1);
-        if(videoRunning){
+    if (curTrackNum < 0) {
+        playTrack(curTrackNum - 1);
+        if (videoRunning) {
             stopVideo();
             fadeVideo();
         }
@@ -224,22 +227,23 @@ function doList() {
     myVoice.listVoices(); // debug printer for voice options
 }
 
-function keyPressed() {
-    background(255, 0, 0); // clear screen
-}
 
 function onObjectClick() {
-    if (transmissionRunning) {
-        sendTransmission();
 
+    if (transmissionRunning) {
+        console.log('sendingTransmission')
+        sendTransmission();
     } else if (findPart) {
+        console.log('findPart');
         missedClick++;
         console.log(missedClick);
         if (missedClick > 5) {
             parts.prevPiece().flash(1000);
             missedClick = 0;
         }
+        console.log('hello');
     } else {
+        console.log('baseball')
         //baseball broadcast send message every five
         missedClick++;
         if (parts.prevPiece() && missedClick > 5) {
@@ -267,7 +271,7 @@ function normalVoice() {
 
 function speakWithRandom(message, randomAmount) {
     //randomAmount bewteen 0 and 1
-    if(message){
+    if (message) {
         let randAmt = random(1);
         if (randAmt < randomAmount) {
             randomVoice();
@@ -275,7 +279,7 @@ function speakWithRandom(message, randomAmount) {
         speakMes(message);
         normalVoice();
     }
-    
+
 }
 
 function speakMes(message) {
@@ -299,12 +303,11 @@ function sendTransmissionArray(trackNum, transmissionNumber) {
     let curMessage = transmissions[trackNum][transmissionNumber];
     console.log(curMessage);
     if (typeof curMessage === "function") {
-        return true;
         //if passed function returns false the text does not dissapear
         if (transmissions[trackNum][transmissionNumber]()) {
             document.getElementById("transmission").innerText = "";
-
         }
+        return true;
     } else {
         return sendMessage(curMessage);
         //speakWithRandom(curMessage, transmissionNumber / 10)
@@ -312,16 +315,22 @@ function sendTransmissionArray(trackNum, transmissionNumber) {
 
 }
 
+function glitchOutRandom(num) {
+    if ((curTrackNum + 0.2) * Math.random() * num > 0.9) {
+        glitchOut();
+    }
+}
+
 
 function sendMessage(message) {
     if (!typing) {
-        
         messageIndex = 0;
         typing = true;
         speakWithRandom(message, curRandomVoice)
         $(".screen").addClass("talking");
         document.getElementById("transmission").innerText = ""
         typeMessage(message)
+        glitchOutRandom(1);
         return true;
     } else {
         //show all message
@@ -333,7 +342,7 @@ function sendMessage(message) {
 }
 
 function typeMessage(message) {
-    if ( messageIndex < message.length) {
+    if (messageIndex < message.length) {
         const curChar = message.charAt(messageIndex);
         if (typing) {
             document.getElementById("transmission").innerHTML += message.charAt(messageIndex);
@@ -359,7 +368,7 @@ function getName() {
     doneBtn.className = "fullWidth";
     modalContent.appendChild(inputName);
     modalContent.appendChild(doneBtn);
-    inputName.placeholder="NAME"
+    inputName.placeholder = "NAME"
     doneBtn.onclick = function () {
         console.log(inputName.value);
         givenName = inputName.value;
@@ -380,12 +389,16 @@ function getName() {
 
 }
 
-Array.prototype.insert = function ( index, item ) {
-    this.splice( index, 0, item );
+Array.prototype.insert = function (index, item) {
+    this.splice(index, 0, item);
 };
 
-function insertMessage(message){
-    transmissions[curTrackNum].insert(globalTransmissionNum, message);
+function insertMessage(message, offset) {
+    if (offset) {
+        transmissions[curTrackNum].insert(globalTransmissionNum + offset, message);
+    } else {
+        transmissions[curTrackNum].insert(globalTransmissionNum, message);
+    }
 }
 
 function getYesNoFake() {
@@ -394,10 +407,12 @@ function getYesNoFake() {
     yesBtn.innerHTML = "YES";
     noBtn.innerHTML = "no";
     noBtn.onclick = function () {
-        transmissions[0][8] = "I saw that $#!1 by the way don't ever try to pull that again";
+
         noBtn.innerHTML = "YES";
         if (saidNo === true) {
             closeBox();
+        } else {
+            insertMessage("I saw that $#!1 by the way don't ever try to pull that again", 1);
         }
         saidNo = true;
     }
@@ -467,17 +482,62 @@ function fadeOutRadio(noVideo) {
     console.log('fading')
     $('.fullRadio').addClass("shake-opacity");
     $('#transmission').addClass("shake-opacity");
-    
+
     $('#wholeRadio').fadeOut("slow", function () {
         $('.fullRadio').removeClass("shake-opacity");
         $('#transmission').removeClass("shake-opacity");
-        if(!noVideo){
+        if (!noVideo) {
             console.log("video starting")
             startVideo(curTrackNum);
         }
     });
 }
 
+function glitchOut() {
+    if (!glitching) {
+
+        glitching = true;
+        const startLeft = $('#transmission').css("left")
+        const startTop = $('#transmission').css("top")
+        const startLeftRadio = $('.fullRadio').css("left")
+        const startTopRadio = $('.fullRadio').css("top")
+        $('.fullRadio').css("transition-duration", "0s")
+
+        console.log(startLeftRadio);
+        console.log(startTopRadio);
+
+        setTimeout(function () {
+            $('.fullRadio').css("left", (Math.random() * 800 - 400) + "px")
+            $('.fullRadio').css("top", (Math.random() * 800 - 400) + "px")
+            $('#wholeRadio').css('transform', 'rotate(' + (Math.random() * 360) + 'deg)')
+            $('#transmission').css("left", (Math.random() * 800 - 400) + "px")
+            $('#transmission').css("top", (Math.random() * 800 - 400) + "px")
+            setTimeout(function () {
+                $('#wholeRadio').css('transform', 'rotate(' + (Math.random() * 360) + 'deg)')
+                $('.fullRadio').css("left", (Math.random() * 800 - 400) + "px")
+                $('.fullRadio').css("top", (Math.random() * 800 - 400) + "px")
+                $('#transmission').css("left", (Math.random() * 800 - 400) + "px")
+                $('#transmission').css("top", (Math.random() * 800 - 400) + "px")
+                $('#transmission').css('transform', 'rotate(' + (Math.random() * 360) + 'deg)')
+                $('#wholeRadio').css('transform', 'translateY(-50%)')
+                setTimeout(function () {
+                    $('.fullRadio').css("left", startLeftRadio)
+                    $('.fullRadio').css("top", startTopRadio)
+                    setTimeout(function () {
+                        $('.fullRadio').css("transition-duration", "3s")
+                        $('#transmission').css("left", startLeft)
+                        $('#transmission').css("top", startTop)
+                        glitching = false;
+                    }, Math.random() * 500)
+                }, Math.random() * 500)
+            }, Math.random() * 500);
+
+        }, Math.random() * 3000);
+
+    }
+
+
+}
 
 
 function windowResized() {
@@ -488,7 +548,7 @@ function windowResized() {
     button2.position(windowWidth / 2 - button2.width / 2 - padding, windowHeight / 2 - button2.height / 2);
 }
 
-function stopVideo(){
+function stopVideo() {
     videoRunning = false;
     bringCanvasToFront();
     staticSound.setVolume(0.2, 2)
@@ -496,22 +556,31 @@ function stopVideo(){
 
 function draw() {
     if (home) {
-        
-        if(frameCount % 5 == 0){
+
+        //DELTE AND UNCOMMENT FOR NO MORE TESTING
+        // home = false;
+        // playTrack(0);
+
+        if (frameCount % 5 == 0) {
             fill(0, 30);
             rect(centerX, centerY, width, height)
             titleText(addStart, runningIntro);
         }
-        
+
     } else {
-        if (videoRunning)  {
-            if (player.getCurrentTime() > player.getDuration() * 0.98) {
-                nextTrack();
-                videoRunning = false;
-            }
-        }
+        //TODO make it so check only happens every second or so;
+        playVideoCheck();
     }
 
+}
+
+function playVideoCheck() {
+    if (videoRunning) {
+        if (player.getCurrentTime() > player.getDuration() * 0.98) {
+            nextTrack();
+            videoRunning = false;
+        }
+    }
 }
 
 
@@ -530,11 +599,10 @@ function titleText(add, runningIntro) {
         }
     } else {
         size = 200 - Math.cos(frameCount / 100) * 200 + add;
-        // color = size + 255;
     }
 
     prevSize = size;
-    fill(color, color, color);
+    fill(color);
     textSize(size * Math.random());
     // translate(width / 2, height / 2);
     // rotate(size * frameCount)
@@ -560,9 +628,13 @@ function fullscreenButton() {
 function enterSite() {
     button1.remove();
     button2.remove();
+    $('#warning').fadeOut()
+    $('#trackControls1').fadeIn()
+    $('#trackControls2').fadeIn()
     runningIntro = true;
     introSound.setVolume(0, 5);
     staticSound.loop();
+
     // background(0);
     // clear();
     //document.getElementById("defaultCanvas0").style.zIndex = "1"

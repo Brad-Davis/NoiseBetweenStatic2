@@ -8,13 +8,13 @@ function closeNav() {
 
 
 
-function openVolume(){
+function openVolume() {
     console.log(document.getElementById('volumeBar'));
     document.getElementById('volumeBar').style.transform = "translateX(0%)";
     console.log("VOLUME")
 }
 
-function closeVolume(){
+function closeVolume() {
     document.getElementById('volumeBar').style.transform = "translateX(-100%)";
 }
 
@@ -49,13 +49,13 @@ function fadeInAndOut() {
     }, randomTime);
 }
 
-function setVolume(level){
+function setVolume(level) {
     player.setVolume(level);
-    masterVolume(level/100);
-    myVoice.setVolume(level/100);
+    masterVolume(level / 100);
+    myVoice.setVolume(level / 100);
 }
 
-const videos = ['K6fCnO9TjG0','r3-Y31ONZuI', 'qStlJor9Z1k'];
+const videos = ['UZCKAGJwlNU', 'g_FtYHLgNbE', 'fdS8bAQDIr4'];
 function runVideo(videoNum) {
     $('#fullBackground').css("display", "block");
     $('#fullBackground').fadeIn('slow');
@@ -68,9 +68,9 @@ function runVideo(videoNum) {
     $("#defaultCanvas0").fadeTo(3000, 0);
 }
 
-function fadeVideo(){
-    $(".staticBackground").fadeTo(500, 1, function() {
-        $('#fullBackground').fadeOut('slow', function(){
+function fadeVideo() {
+    $(".staticBackground").fadeTo(500, 1, function () {
+        $('#fullBackground').fadeOut('slow', function () {
             $('#fullBackground').css("display", "none");
             stopVideo();
         });
@@ -90,14 +90,21 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 //    after the API code downloads.
 var player;
 
+function openCredits() {
+    document.getElementById("credits").style.display = "block";
+}
+
+function closeCredits() {
+    document.getElementById("credits").style.display = "none";
+}
 
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
         height: '100%',
         width: '100%',
         videoId: 'g_FtYHLgNbE',
-        controls: 0,
-        rel: 0
+        playerVars: { 'autoplay': 1, 'controls': 0 },
+
     });
 }
 
