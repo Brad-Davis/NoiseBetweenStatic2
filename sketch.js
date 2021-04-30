@@ -132,7 +132,8 @@ function preload() {
 
         //baseball radio starts playing and will continue to until you touch the mouth
         //weird sounds start playing
-    ]]
+    ],
+    [openCredits]]
     soundFormats('mp3')
     staticSound = loadSound('static.mp3');
     introSound = loadSound('radio.mp3');
@@ -189,7 +190,7 @@ function stopTransmission() {
 function nextTrack() {
     //need to worry about stopping video
 
-    if (curTrackNum < 2) {
+    if (curTrackNum < 3) {
         fadeOutRadio(true);
         playTrack(curTrackNum + 1);
         if (videoRunning) {
